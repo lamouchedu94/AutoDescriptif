@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"runtime/pprof"
 	"sort"
 	"strconv"
@@ -16,7 +17,7 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
 
 func main() {
 	var err error
-	nb := 100000000
+	nb := 7000000000
 	flag.Parse()
 	if flag.NArg() > 0 {
 		nb, err = strconv.Atoi(flag.Arg(0))
@@ -38,7 +39,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	th := 16 // runtime.NumCPU()
+	th := runtime.NumCPU()
 	lockval := sync.Mutex{}
 	val := []int{}
 	inter := interval(nb, th)
