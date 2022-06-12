@@ -16,7 +16,7 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
 
 func main() {
 	var err error
-	nb := 3000000
+	nb := 100000000
 	flag.Parse()
 	if flag.NArg() > 0 {
 		nb, err = strconv.Atoi(flag.Arg(0))
@@ -38,10 +38,8 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	th := 1
-
+	th := 16 // runtime.NumCPU()
 	lockval := sync.Mutex{}
-
 	val := []int{}
 	inter := interval(nb, th)
 	var wg sync.WaitGroup
@@ -49,7 +47,7 @@ func main() {
 	for i := 0; i < th; i++ {
 		wg.Add(1)
 		go func(i int) {
-			r := segment(i, inter)
+			r := segment(i*inter, inter)
 			lockval.Lock()
 			val = append(val, r...)
 			lockval.Unlock()
@@ -63,18 +61,22 @@ func main() {
 	//fmt.Println(inter, "inter ", mult, "mult ")
 	fmt.Println(val)
 	fmt.Println(fin.Sub(deb))
+
 }
 
-func segment(i int, inter int) []int {
-	a := []int{}
-
-	for j := inter * i; j < inter*(i+1); j++ {
-		if EstAutodesc2(strconv.Itoa(j)) {
-			a = append(a, j)
+func segment(debut int, longueur int) []int {
+	resultat := []int{}
+	//fmt.Println(n)
+	n := ItoNombre(debut)
+	j := longueur
+	for j > 0 {
+		if n.estAutodescriptif() {
+			resultat = append(resultat, n.int())
 		}
-
+		n.inc()
+		j--
 	}
-	return a
+	return resultat
 
 }
 

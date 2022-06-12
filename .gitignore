@@ -1,4 +1,5 @@
 autodec.exe
 autodescriptif
 prof.pprof
-profile001.svg
+*.svg
+
