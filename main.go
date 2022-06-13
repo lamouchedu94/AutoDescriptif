@@ -17,7 +17,8 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
 
 func main() {
 	var err error
-	nb := 1210
+	nb := 70000000 // Nombre de valeurs à calculer
+
 	flag.Parse()
 	if flag.NArg() > 0 {
 		nb, err = strconv.Atoi(flag.Arg(0))
@@ -42,13 +43,19 @@ func main() {
 	th := runtime.NumCPU()
 	lockval := sync.Mutex{}
 	val := []int{}
-	inter, dernier := interval(nb, th)
+	inter := interval(nb, th)
+	longeur := inter
 	var wg sync.WaitGroup
 	deb := time.Now()
+
 	for i := 0; i < th; i++ {
+		nb -= inter
+		if i >= th-1 {
+			longeur += nb + 1
+		}
 		wg.Add(1)
 		go func(i int) {
-			r := segment(i*inter, inter)
+			r := segment(i*inter, longeur)
 			lockval.Lock()
 			val = append(val, r...)
 			lockval.Unlock()
@@ -56,14 +63,6 @@ func main() {
 		}(i)
 
 	}
-	wg.Add(1)
-	go func(i int) {
-		r := segment(i*inter, dernier+1)
-		lockval.Lock()
-		val = append(val, r...)
-		lockval.Unlock()
-		wg.Done()
-	}(th)
 	wg.Wait()
 	fin := time.Now()
 	sort.Ints(val)
@@ -89,9 +88,7 @@ func segment(debut int, longueur int) []int {
 
 }
 
-func interval(nb int, th int) (int, int) {
-	res := nb / th
-	diff := nb - (res * th)
-	return res, diff
+func interval(nb int, th int) int {
+	return nb / th
 
 }
